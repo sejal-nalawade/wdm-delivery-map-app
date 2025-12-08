@@ -6,9 +6,6 @@ import db from "../db.server";
 export const loader = async ({ params, request }) => {
   const { shop } = params;
   
-  console.log('[App Proxy] Pins request for shop:', shop);
-  console.log('[App Proxy] Request URL:', request.url);
-  
   if (!shop) {
     return Response.json({ error: "Shop parameter is required" }, { 
       status: 400,
@@ -25,9 +22,6 @@ export const loader = async ({ params, request }) => {
       orderBy: { createdAt: 'desc' },
     });
 
-    console.log('[App Proxy] Found pins:', pins.length);
-    console.log('[App Proxy] Pin data:', JSON.stringify(pins, null, 2));
-
     return Response.json({ pins }, {
       headers: {
         "Content-Type": "application/json",
@@ -38,7 +32,6 @@ export const loader = async ({ params, request }) => {
       },
     });
   } catch (error) {
-    console.error("[App Proxy] Error fetching pins:", error);
     return Response.json({ pins: [] }, { 
       status: 200,
       headers: {

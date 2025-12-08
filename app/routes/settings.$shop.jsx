@@ -6,9 +6,6 @@ import db from "../db.server";
 export const loader = async ({ params, request }) => {
   const { shop } = params;
   
-  console.log('[App Proxy] Settings request for shop:', shop);
-  console.log('[App Proxy] Request URL:', request.url);
-  
   if (!shop) {
     return Response.json({ error: "Shop parameter is required" }, { 
       status: 400,
@@ -23,8 +20,6 @@ export const loader = async ({ params, request }) => {
     const settings = await db.mapSettings.findUnique({
       where: { shop },
     });
-
-    console.log('[App Proxy] Found settings:', settings ? 'yes' : 'no');
 
     // Convert "default" to "interactive" since we removed the static option
     const processedSettings = settings ? {
@@ -71,7 +66,6 @@ export const loader = async ({ params, request }) => {
       },
     });
   } catch (error) {
-    console.error("[App Proxy] Error fetching map settings:", error);
     return Response.json({ error: "Failed to fetch settings" }, { 
       status: 500,
       headers: {
