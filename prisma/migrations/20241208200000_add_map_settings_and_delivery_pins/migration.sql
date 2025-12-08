@@ -30,7 +30,7 @@ CREATE TABLE "MapSettings" (
     "descriptionSameDay" TEXT NOT NULL DEFAULT 'We deliver same-day within the NYC metropolitan area.',
     "descriptionScheduled" TEXT NOT NULL DEFAULT 'Scheduled delivery available nationwide.',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "MapSettings_pkey" PRIMARY KEY ("id")
 );
@@ -52,7 +52,6 @@ CREATE TABLE "DeliveryPin" (
     "borderThickness" INTEGER NOT NULL DEFAULT 1,
     "fillOpacity" DOUBLE PRECISION NOT NULL DEFAULT 0.25,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "DeliveryPin_pkey" PRIMARY KEY ("id")
