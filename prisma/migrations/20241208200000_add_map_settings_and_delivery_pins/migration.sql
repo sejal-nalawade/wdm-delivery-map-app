@@ -53,6 +53,7 @@ CREATE TABLE "DeliveryPin" (
     "fillOpacity" DOUBLE PRECISION NOT NULL DEFAULT 0.25,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "DeliveryPin_pkey" PRIMARY KEY ("id")
 );
@@ -65,4 +66,3 @@ CREATE INDEX "DeliveryPin_shop_idx" ON "DeliveryPin"("shop");
 
 -- CreateIndex
 CREATE INDEX "DeliveryPin_deliveryMode_idx" ON "DeliveryPin"("deliveryMode");
-
