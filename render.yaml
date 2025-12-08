@@ -23,6 +23,8 @@ services:
         fromDatabase:
           name: wdm-delivery-map-db
           property: connectionString
+      - key: SHOPIFY_APP_URL
+        value: https://wdm-delivery-map-app.onrender.com
       - key: HOST
         value: wdm-delivery-map-app.onrender.com
 

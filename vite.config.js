@@ -11,12 +11,22 @@ if (
   (!process.env.SHOPIFY_APP_URL ||
     process.env.SHOPIFY_APP_URL === process.env.HOST)
 ) {
-  process.env.SHOPIFY_APP_URL = process.env.HOST;
+  // Add protocol if missing
+  let hostValue = process.env.HOST;
+  if (!hostValue.startsWith('http://') && !hostValue.startsWith('https://')) {
+    hostValue = `https://${hostValue}`;
+  }
+  process.env.SHOPIFY_APP_URL = hostValue;
   delete process.env.HOST;
 }
 
-const host = new URL(process.env.SHOPIFY_APP_URL || "http://localhost")
-  .hostname;
+// Ensure SHOPIFY_APP_URL has a protocol
+let shopifyAppUrl = process.env.SHOPIFY_APP_URL || "http://localhost";
+if (!shopifyAppUrl.startsWith('http://') && !shopifyAppUrl.startsWith('https://')) {
+  shopifyAppUrl = `https://${shopifyAppUrl}`;
+}
+
+const host = new URL(shopifyAppUrl).hostname;
 let hmrConfig;
 
 if (host === "localhost") {
