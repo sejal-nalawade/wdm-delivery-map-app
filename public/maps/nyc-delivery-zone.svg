@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <!-- NYC Metro Area Map with Delivery Zone -->
+  <defs>
+    <style>
+      .water { fill: #a8d5f7; }
+      .land { fill: #f0f0f0; }
+      .delivery-zone { fill: #4CAF50; fill-opacity: 0.3; stroke: #2E7D32; stroke-width: 2; }
+      .label { font-family: Arial, sans-serif; font-size: 14px; fill: #333; font-weight: bold; }
+      .zone-label { font-family: Arial, sans-serif; font-size: 16px; fill: #2E7D32; font-weight: bold; }
+    </style>
+  </defs>
+  
+  <!-- Background water -->
+  <rect class="water" width="800" height="600"/>
+  
+  <!-- Land masses (simplified NYC area) -->
+  <!-- Manhattan -->
+  <path class="land" d="M 380 200 L 390 180 L 395 190 L 400 200 L 405 250 L 410 300 L 405 350 L 395 380 L 385 370 L 380 320 L 375 270 L 378 230 Z"/>
+  
+  <!-- Brooklyn -->
+  <path class="land" d="M 395 380 L 410 375 L 450 390 L 480 400 L 490 410 L 485 420 L 460 425 L 430 420 L 410 410 L 395 395 Z"/>
+  
+  <!-- Queens -->
+  <path class="land" d="M 410 300 L 450 290 L 500 300 L 530 320 L 540 340 L 535 360 L 510 370 L 480 375 L 450 370 L 420 360 L 410 340 Z"/>
+  
+  <!-- Bronx -->
+  <path class="land" d="M 390 180 L 410 160 L 440 150 L 460 160 L 470 180 L 465 200 L 450 210 L 430 215 L 410 210 L 400 200 Z"/>
+  
+  <!-- Staten Island -->
+  <path class="land" d="M 320 420 L 340 410 L 370 415 L 385 430 L 380 450 L 360 460 L 335 455 L 320 440 Z"/>
+  
+  <!-- New Jersey (partial) -->
+  <path class="land" d="M 280 150 L 360 140 L 370 200 L 365 280 L 360 350 L 350 400 L 320 420 L 300 410 L 285 380 L 280 320 L 275 250 L 278 190 Z"/>
+  
+  <!-- Long Island (partial) -->
+  <path class="land" d="M 540 340 L 580 330 L 650 340 L 700 350 L 720 360 L 710 380 L 680 390 L 640 395 L 590 390 L 550 380 L 535 360 Z"/>
+  
+  <!-- Delivery Zone Highlight (NYC Metro) -->
+  <ellipse class="delivery-zone" cx="420" cy="300" rx="180" ry="150"/>
+  
+  <!-- Labels -->
+  <text class="label" x="385" y="290">Manhattan</text>
+  <text class="label" x="445" y="405">Brooklyn</text>
+  <text class="label" x="470" y="335">Queens</text>
+  <text class="label" x="420" y="185">Bronx</text>
+  <text class="label" x="330" y="440">Staten Island</text>
+  
+  <!-- Zone Label -->
+  <text class="zone-label" x="350" y="480" text-anchor="middle">Same-Day Delivery Zone</text>
+  <text class="label" x="300" y="500" text-anchor="middle" style="font-size: 12px; fill: #666;">NYC Metropolitan Area</text>
+</svg>
+

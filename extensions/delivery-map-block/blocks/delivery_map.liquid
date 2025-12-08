@@ -1,0 +1,666 @@
+{% comment %}
+  Delivery Locations Map Block
+  Displays an interactive map with pins and radius zones showing delivery coverage
+{% endcomment %}
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+<div class="delivery-map-container" id="delivery-map-{{ section.id }}" data-section-id="{{ section.id }}">
+  {% if block.settings.show_title and block.settings.title != blank %}
+    <h2 class="delivery-map-title">{{ block.settings.title }}</h2>
+  {% endif %}
+
+  <div class="delivery-map-toggles" id="delivery-toggles-{{ section.id }}">
+    <button 
+      class="delivery-toggle-btn active" 
+      data-mode="sameDay"
+      id="btn-same-day-{{ section.id }}"
+    >
+      <span class="toggle-text">Same Day Delivery</span>
+    </button>
+    <button 
+      class="delivery-toggle-btn" 
+      data-mode="scheduled"
+      id="btn-scheduled-{{ section.id }}"
+    >
+      <span class="toggle-text">Scheduled Delivery</span>
+    </button>
+  </div>
+
+  <div class="delivery-map-description" id="map-description-{{ section.id }}">
+    <p class="description-text"></p>
+  </div>
+
+  <div class="delivery-map-display" id="map-display-{{ section.id }}">
+    <div class="map-loading" id="map-loading-{{ section.id }}">Loading map...</div>
+  </div>
+</div>
+
+<style>
+  .delivery-map-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  }
+
+  .delivery-map-title {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 30px;
+    font-weight: 600;
+    color: #1a1a1a;
+  }
+
+  .delivery-map-toggles {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+  }
+
+  .delivery-toggle-btn {
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 500;
+    border: 2px solid #1a73e8;
+    background: #fff;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    font-family: inherit;
+  }
+
+  .delivery-toggle-btn.active {
+    background: #1a73e8;
+    color: #fff;
+  }
+
+  .delivery-toggle-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(26, 115, 232, 0.25);
+  }
+
+  .delivery-map-description {
+    text-align: center;
+    margin-bottom: 20px;
+    min-height: 30px;
+  }
+
+  .description-text {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .delivery-map-display {
+    width: 100%;
+    min-height: 500px;
+    background: #f8f9fa;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    position: relative;
+  }
+
+  /* Target only direct children or images/svgs that are NOT part of Leaflet */
+.delivery-map-display > img, 
+.delivery-map-display > svg { 
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* FIX: Reset Leaflet SVGs so they render correctly */
+.leaflet-container svg {
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+  .map-loading {
+    font-size: 18px;
+    color: #999;
+    position: absolute;
+    z-index: 1;
+  }
+
+  /* Leaflet Map Styles */
+  .delivery-map-display .leaflet-container {
+    width: 100%;
+    height: 500px;
+    border-radius: 16px;
+    z-index: 2;
+  }
+
+  /* Hide Leaflet Ukraine banner */
+  .leaflet-container a.leaflet-control-attribution-ukraine,
+  .leaflet-control-attribution svg,
+  .leaflet-control-attribution a[href*="leafletjs.com"] svg,
+  .leaflet-control-attribution a[href*="stand-with-ukraine"] {
+    display: none !important;
+  }
+
+  /* Style the attribution properly */
+  .leaflet-control-attribution {
+    font-size: 10px !important;
+    background: rgba(255,255,255,0.8) !important;
+    padding: 2px 8px !important;
+    border-radius: 4px 0 0 0 !important;
+  }
+
+  .leaflet-control-attribution a {
+    color: #0078A8 !important;
+    text-decoration: none !important;
+  }
+
+  /* Custom Pin Marker */
+  .custom-pin-marker {
+    background: transparent;
+    border: none;
+  }
+
+  /* Ensure marker pane is above circles */
+  .leaflet-marker-pane {
+    z-index: 600 !important;
+  }
+
+  /* Custom delivery pane for radius circles */
+  .leaflet-deliverypane-pane {
+    z-index: 450 !important;  /* Above tiles (200) and overlayPane (400), below markerPane (600) */
+  }
+
+  /* Ensure delivery circles render correctly */
+  .leaflet-deliverypane-pane svg path {
+    pointer-events: none !important;
+  }
+
+  .pin-marker-inner {
+    width: 30px;
+    height: 30px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 3px solid white;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    transition: transform 0.2s ease;
+  }
+
+  .pin-marker-inner:hover {
+    transform: rotate(-45deg) scale(1.1);
+  }
+
+  /* Popup Styles */
+  .leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+
+  .leaflet-popup-content {
+    margin: 15px;
+    font-family: inherit;
+  }
+
+  .pin-popup-title {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #1a1a1a;
+  }
+
+  .pin-popup-desc {
+    color: #666;
+    font-size: 14px;
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .delivery-map-container {
+      padding: 15px;
+      margin: 20px auto;
+    }
+
+    .delivery-map-title {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    .delivery-map-toggles {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .delivery-toggle-btn {
+      width: 100%;
+      padding: 15px;
+    }
+
+    .delivery-map-display {
+      min-height: 350px;
+    }
+
+    .delivery-map-display .leaflet-container {
+      height: 350px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .delivery-map-title {
+      font-size: 1.25rem;
+    }
+
+    .delivery-toggle-btn {
+      font-size: 14px;
+      padding: 12px;
+    }
+
+    .description-text {
+      font-size: 14px;
+    }
+
+    .delivery-map-display {
+      min-height: 300px;
+    }
+
+    .delivery-map-display .leaflet-container {
+      height: 300px;
+    }
+  }
+</style>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+<script>
+  (function() {
+    const sectionId = '{{ section.id }}';
+    const shopDomain = '{{ shop.permanent_domain }}';
+    
+    // Default settings - use interactive mode by default
+    let settings = {
+      sameDayMode: 'interactive',
+      sameDayImageUrl: null,
+      sameDayZoomLevel: 11,
+      sameDayCenter: { lat: 40.7128, lng: -74.0060 },
+      scheduledMode: 'interactive',
+      scheduledImageUrl: null,
+      scheduledZoomLevel: 11,
+      scheduledCenter: { lat: 39.8283, lng: -98.5795 },
+      toggleTextSameDay: 'Same Day Delivery',
+      toggleTextScheduled: 'Scheduled Delivery',
+      buttonActiveColor: '#1a73e8',
+      buttonInactiveColor: '#f1f3f4',
+      buttonAlignment: 'center',
+      buttonShape: 'rounded',
+      defaultMode: 'sameDay',
+      showDescription: true,
+      descriptionSameDay: 'We deliver same-day within the NYC metropolitan area.',
+      descriptionScheduled: 'Scheduled delivery available nationwide.'
+    };
+
+    let pins = [];
+    let currentMode = 'sameDay';
+    let map = null;
+    let markersLayer = null;
+    let circlesLayer = null;
+
+    // DOM elements
+    const container = document.getElementById('delivery-map-' + sectionId);
+    const togglesContainer = document.getElementById('delivery-toggles-' + sectionId);
+    const mapDisplay = document.getElementById('map-display-' + sectionId);
+    const descriptionContainer = document.getElementById('map-description-' + sectionId);
+    const btnSameDay = document.getElementById('btn-same-day-' + sectionId);
+    const btnScheduled = document.getElementById('btn-scheduled-' + sectionId);
+    const loadingEl = document.getElementById('map-loading-' + sectionId);
+
+    // Fetch settings from API via App Proxy
+    async function fetchSettings() {
+      // App Proxy URL - routes /apps/delivery-map/* to your app
+      // The subpath "delivery-map" is configured in shopify.app.toml
+      const settingsUrl = '/apps/delivery-map/settings/' + encodeURIComponent(shopDomain);
+      
+      try {
+        const response = await fetch(settingsUrl);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.settings) {
+            settings = { ...settings, ...data.settings };
+            
+            // Parse center coordinates
+            if (typeof settings.sameDayCenter === 'string') {
+              try { settings.sameDayCenter = JSON.parse(settings.sameDayCenter); } catch(e) {}
+            }
+            if (typeof settings.scheduledCenter === 'string') {
+              try { settings.scheduledCenter = JSON.parse(settings.scheduledCenter); } catch(e) {}
+            }
+            
+            // Convert "default" to "interactive"
+            if (settings.sameDayMode === 'default') settings.sameDayMode = 'interactive';
+            if (settings.scheduledMode === 'default') settings.scheduledMode = 'interactive';
+          }
+        }
+      } catch (error) {
+        // Silently fail and use defaults
+      }
+
+      // Fetch pins via App Proxy
+      const pinsUrl = '/apps/delivery-map/pins/' + encodeURIComponent(shopDomain);
+      
+      try {
+        const response = await fetch(pinsUrl);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.pins && Array.isArray(data.pins)) {
+            pins = data.pins;
+          }
+        }
+      } catch (error) {
+        // Silently fail and use empty pins array
+      }
+
+      // Always initialize map (use defaults if API fails)
+      initializeMap();
+    }
+
+    // Initialize the map with settings
+    function initializeMap() {
+      // Update button text
+      btnSameDay.querySelector('.toggle-text').textContent = settings.toggleTextSameDay;
+      btnScheduled.querySelector('.toggle-text').textContent = settings.toggleTextScheduled;
+
+      // Apply button styles
+      applyButtonStyles();
+
+      // Set default mode
+      currentMode = settings.defaultMode || 'sameDay';
+      updateActiveButton();
+      displayMap(currentMode);
+
+      // Add event listeners
+      btnSameDay.addEventListener('click', () => switchMode('sameDay'));
+      btnScheduled.addEventListener('click', () => switchMode('scheduled'));
+    }
+
+    // Apply button styles from settings
+    function applyButtonStyles() {
+      // Apply alignment
+      if (settings.buttonAlignment === 'left') {
+        togglesContainer.style.justifyContent = 'flex-start';
+      } else if (settings.buttonAlignment === 'right') {
+        togglesContainer.style.justifyContent = 'flex-end';
+      } else {
+        togglesContainer.style.justifyContent = 'center';
+      }
+
+      // Apply shape
+      const buttons = togglesContainer.querySelectorAll('.delivery-toggle-btn');
+      buttons.forEach(btn => {
+        if (settings.buttonShape === 'square') {
+          btn.style.borderRadius = '0';
+        } else if (settings.buttonShape === 'pill') {
+          btn.style.borderRadius = '50px';
+        } else {
+          btn.style.borderRadius = '8px';
+        }
+        btn.style.borderColor = settings.buttonActiveColor;
+      });
+    }
+
+    // Switch between delivery modes
+    function switchMode(mode) {
+      if (currentMode === mode) return;
+      currentMode = mode;
+      updateActiveButton();
+      displayMap(mode);
+    }
+
+    // Update active button state
+    function updateActiveButton() {
+      btnSameDay.classList.remove('active');
+      btnScheduled.classList.remove('active');
+
+      if (currentMode === 'sameDay') {
+        btnSameDay.classList.add('active');
+        btnSameDay.style.background = settings.buttonActiveColor;
+        btnSameDay.style.borderColor = settings.buttonActiveColor;
+        btnSameDay.style.color = '#fff';
+        btnScheduled.style.background = settings.buttonInactiveColor;
+        btnScheduled.style.borderColor = settings.buttonActiveColor;
+        btnScheduled.style.color = '#333';
+      } else {
+        btnScheduled.classList.add('active');
+        btnScheduled.style.background = settings.buttonActiveColor;
+        btnScheduled.style.borderColor = settings.buttonActiveColor;
+        btnScheduled.style.color = '#fff';
+        btnSameDay.style.background = settings.buttonInactiveColor;
+        btnSameDay.style.borderColor = settings.buttonActiveColor;
+        btnSameDay.style.color = '#333';
+      }
+    }
+
+    // Display the map for the selected mode
+    function displayMap(mode) {
+      const isSameDay = mode === 'sameDay';
+      const mapMode = isSameDay ? settings.sameDayMode : settings.scheduledMode;
+      const imageUrl = isSameDay ? settings.sameDayImageUrl : settings.scheduledImageUrl;
+      const description = isSameDay ? settings.descriptionSameDay : settings.descriptionScheduled;
+      const center = isSameDay ? settings.sameDayCenter : settings.scheduledCenter;
+      const zoom = isSameDay ? settings.sameDayZoomLevel : settings.scheduledZoomLevel;
+
+      // Update description
+      if (settings.showDescription && descriptionContainer) {
+        const descText = descriptionContainer.querySelector('.description-text');
+        if (descText) {
+          descText.textContent = description;
+        }
+      }
+
+      // Hide loading
+      if (loadingEl) loadingEl.style.display = 'none';
+
+      // Display based on mode - treat "default" as "interactive" since we removed static option
+      if (mapMode === 'interactive' || mapMode === 'custom_tiles' || mapMode === 'default') {
+        displayInteractiveMap(mode, center, zoom);
+      } else if (mapMode === 'image' && imageUrl) {
+        displayStaticImage(imageUrl);
+      } else {
+        // Fallback to interactive map
+        displayInteractiveMap(mode, center, zoom);
+      }
+    }
+
+    // Display interactive Leaflet map
+    function displayInteractiveMap(mode, center, zoom) {
+      if (typeof L === 'undefined') {
+        return;
+      }
+
+      // Create map container if needed
+      let mapContainer = mapDisplay.querySelector('.leaflet-container');
+      if (!mapContainer) {
+        mapDisplay.innerHTML = '<div id="leaflet-map-' + sectionId + '" style="width:100%;height:500px;"></div>';
+      }
+
+      // Initialize or update map
+      if (!map) {
+        map = L.map('leaflet-map-' + sectionId).setView(
+          [center.lat || 40.7128, center.lng || -74.0060],
+          zoom || 10
+        );
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19
+        }).addTo(map);
+
+        // Create custom pane for delivery circles
+        map.createPane('deliveryPane');
+        const deliveryPane = map.getPane('deliveryPane');
+        deliveryPane.style.zIndex = 450; // Above tiles, below markers
+        deliveryPane.style.pointerEvents = 'none';
+
+        // Initialize layer groups
+        circlesLayer = L.layerGroup().addTo(map);
+        markersLayer = L.layerGroup().addTo(map);
+
+        // Remove any Ukraine banner that Leaflet might add
+        setTimeout(function() {
+          var ukraineBanners = document.querySelectorAll('.leaflet-control-attribution svg, .leaflet-control-attribution a[href*="ukraine"]');
+          ukraineBanners.forEach(function(el) { el.style.display = 'none'; });
+        }, 100);
+      } else {
+        // Map already exists, just update view instantly (no animation)
+        map.setView([center.lat || 40.7128, center.lng || -74.0060], zoom || 10);
+      }
+
+      // Clear and add pins immediately
+      renderPins(mode);
+      
+      // Force map refresh after rendering
+      setTimeout(() => {
+        map.invalidateSize(true);
+      }, 100);
+    }
+
+    // Render pins for current mode
+    function renderPins(mode) {
+      if (!markersLayer || !circlesLayer) {
+        return;
+      }
+
+      // Clear existing layers
+      if (markersLayer) {
+        markersLayer.clearLayers();
+      }
+      if (circlesLayer) {
+        circlesLayer.clearLayers();
+      }
+
+      const modePins = pins.filter(pin => 
+        pin.deliveryMode === mode || pin.deliveryMode === 'both'
+      );
+
+      const allBounds = [];
+      
+      modePins.forEach(pin => {
+        // Create custom icon
+        const icon = L.divIcon({
+          className: 'custom-pin-marker',
+          html: '<div class="pin-marker-inner" style="background-color: ' + pin.color + ';"></div>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 30],
+          popupAnchor: [0, -30]
+        });
+
+        // Add marker
+        const marker = L.marker([pin.latitude, pin.longitude], { icon: icon });
+        marker.bindPopup(
+          '<div class="pin-popup-title">' + pin.title + '</div>' +
+          (pin.description ? '<div class="pin-popup-desc">' + pin.description + '</div>' : '')
+        );
+        markersLayer.addLayer(marker);
+
+        // Add radius circle if enabled
+        if (pin.hasRadius && pin.radiusDistance) {
+          // Ensure we are working with floats
+          const dist = parseFloat(pin.radiusDistance);
+          const lat = parseFloat(pin.latitude);
+          const lng = parseFloat(pin.longitude);
+          
+          const radiusInMeters = pin.radiusUnit === 'miles' 
+            ? dist * 1609.34 
+            : dist * 1000;
+
+          const circle = L.circle([lat, lng], {
+            radius: radiusInMeters,
+            color: pin.borderColor,
+            weight: pin.borderThickness,
+            fillColor: pin.fillColor,
+            fillOpacity: pin.fillOpacity,
+            pane: 'deliveryPane',
+            className: 'delivery-radius-circle',
+          });
+
+          // Add to map directly first (ensures DOM draw)
+          circle.addTo(map);
+          
+          // Also add to layer group (keeps layer control logic)
+          circlesLayer.addLayer(circle);
+          
+          // Store circle bounds for map fitting
+          allBounds.push(circle.getBounds());
+        }
+      });
+      
+      // Fit map to show all circles (instant, no animation)
+      if (allBounds.length > 0) {
+        try {
+          const group = L.featureGroup(circlesLayer.getLayers());
+          const bounds = group.getBounds();
+          map.fitBounds(bounds, { 
+            padding: [50, 50],
+            maxZoom: 11,  // Don't zoom in too much
+            animate: false  // No animation - instant like backend
+          });
+          
+          // Force map refresh after fitting bounds
+          map.invalidateSize(true);
+        } catch(e) {
+          // Fallback: zoom out to show larger area
+          map.setZoom(9);
+        }
+      }
+    }
+
+    // Display static image
+    function displayStaticImage(imageUrl) {
+      // Remove Leaflet map if exists
+      if (map) {
+        map.remove();
+        map = null;
+        markersLayer = null;
+        circlesLayer = null;
+      }
+
+      mapDisplay.innerHTML = '<img src="' + imageUrl + '" alt="Delivery Map" style="width:100%;height:auto;border-radius:16px;" />';
+    }
+
+    // Initialize on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fetchSettings);
+    } else {
+      fetchSettings();
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Delivery Locations Map",
+  "target": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Section Title",
+      "default": "Our Delivery Areas"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_title",
+      "label": "Show Title",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

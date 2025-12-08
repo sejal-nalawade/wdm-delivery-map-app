@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
+// enough when changing adapters.
+// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+}
+
+model MapSettings {
+  id                      String   @id @default(uuid())
+  shop                    String   @unique
+  
+  // Same Day Delivery Settings
+  sameDayMode             String   @default("default") // "default" | "image" | "interactive" | "custom_tiles"
+  sameDayImageUrl         String?
+  sameDayGeoJson          String?
+  sameDayZoomLevel        Int      @default(11)
+  sameDayCenter           String?  @default("{\"lat\":40.7128,\"lng\":-74.0060}") // NYC default
+  sameDayTileProvider     String?  // For custom tiles
+  sameDayTileApiKey       String?
+  sameDayPins             String?  @default("[]") // JSON array of pins
+  
+  // Scheduled Delivery Settings
+  scheduledMode           String   @default("default") // "default" | "image" | "interactive" | "custom_tiles"
+  scheduledImageUrl       String?
+  scheduledGeoJson        String?
+  scheduledZoomLevel      Int      @default(4)
+  scheduledCenter         String?  @default("{\"lat\":39.8283,\"lng\":-98.5795}") // USA center
+  scheduledTileProvider   String?
+  scheduledTileApiKey     String?
+  scheduledPins           String?  @default("[]") // JSON array of pins
+  
+  // UI Settings
+  toggleTextSameDay       String   @default("Same Day Delivery")
+  toggleTextScheduled     String   @default("Scheduled Delivery")
+  buttonColor             String   @default("#000000")
+  buttonActiveColor       String   @default("#000000")
+  buttonInactiveColor     String   @default("#666666")
+  buttonAlignment         String   @default("center") // "left" | "center" | "right"
+  buttonShape             String   @default("rounded") // "rounded" | "pill" | "square"
+  defaultMode             String   @default("sameDay") // "sameDay" | "scheduled"
+  showDescription         Boolean  @default(true)
+  descriptionSameDay      String   @default("We deliver same-day within the NYC metropolitan area.")
+  descriptionScheduled    String   @default("Scheduled delivery available nationwide.")
+  
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model DeliveryPin {
+  id                String   @id @default(uuid())
+  shop              String
+  deliveryMode      String   // "sameDay" | "scheduled" | "both"
+  title             String
+  latitude          Float
+  longitude         Float
+  color             String   @default("#FF0000")
+  
+  // Radius Zone Settings
+  hasRadius         Boolean  @default(false)
+  radiusDistance    Float?   // in meters
+  radiusUnit        String   @default("km") // "km" | "miles"
+  fillColor         String   @default("#5dade2")
+  borderColor       String   @default("#5dade2")
+  borderThickness   Int      @default(1)
+  fillOpacity       Float    @default(0.25)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([shop])
+  @@index([deliveryMode])
+}

@@ -1,0 +1,19 @@
+{
+  "delivery_map": {
+    "name": "Delivery Locations Map",
+    "settings": {
+      "title": {
+        "label": "Section Title",
+        "info": "The heading displayed above the delivery map"
+      },
+      "show_title": {
+        "label": "Show Title",
+        "info": "Display or hide the section title"
+      }
+    },
+    "presets": {
+      "name": "Delivery Locations Map"
+    }
+  }
+}
+

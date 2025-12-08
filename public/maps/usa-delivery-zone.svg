@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500">
+  <!-- USA Map for Scheduled Delivery -->
+  <defs>
+    <style>
+      .water { fill: #a8d5f7; }
+      .usa { fill: #4CAF50; fill-opacity: 0.4; stroke: #2E7D32; stroke-width: 1.5; }
+      .label { font-family: Arial, sans-serif; font-size: 18px; fill: #2E7D32; font-weight: bold; }
+      .subtitle { font-family: Arial, sans-serif; font-size: 14px; fill: #666; }
+    </style>
+  </defs>
+  
+  <!-- Background water -->
+  <rect class="water" width="800" height="500"/>
+  
+  <!-- Simplified USA outline -->
+  <path class="usa" d="
+    M 50 250
+    L 60 200
+    L 80 180
+    L 120 160
+    L 150 150
+    L 180 155
+    L 200 165
+    L 220 160
+    L 250 150
+    L 280 155
+    L 310 165
+    L 340 170
+    L 370 165
+    L 400 160
+    L 430 165
+    L 460 175
+    L 490 180
+    L 520 175
+    L 550 170
+    L 580 165
+    L 610 170
+    L 640 180
+    L 670 190
+    L 690 200
+    L 710 220
+    L 720 240
+    L 725 260
+    L 720 280
+    L 710 300
+    L 700 320
+    L 690 340
+    L 680 360
+    L 660 375
+    L 640 385
+    L 620 390
+    L 600 395
+    L 580 398
+    L 560 400
+    L 540 398
+    L 520 395
+    L 500 390
+    L 480 385
+    L 460 390
+    L 440 395
+    L 420 398
+    L 400 400
+    L 380 398
+    L 360 395
+    L 340 390
+    L 320 385
+    L 300 380
+    L 280 375
+    L 260 370
+    L 240 365
+    L 220 360
+    L 200 355
+    L 180 350
+    L 160 345
+    L 140 340
+    L 120 330
+    L 100 320
+    L 80 310
+    L 65 300
+    L 55 285
+    L 50 270
+    Z
+  "/>
+  
+  <!-- Alaska (small, simplified) -->
+  <path class="usa" d="M 80 80 L 120 70 L 150 75 L 170 85 L 175 100 L 165 110 L 140 115 L 110 110 L 85 100 Z"/>
+  
+  <!-- Hawaii (small, simplified) -->
+  <ellipse class="usa" cx="180" cy="430" rx="30" ry="15"/>
+  
+  <!-- Labels -->
+  <text class="label" x="400" y="280" text-anchor="middle">Nationwide Scheduled Delivery</text>
+  <text class="subtitle" x="400" y="305" text-anchor="middle">Available Across All 50 States</text>
+</svg>
+
