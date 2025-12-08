@@ -23,7 +23,18 @@ async function main() {
     process.exit(1);
   }
 
-  // Step 2: Try to deploy migrations
+  // Step 2: Reset and mark the first migration as rolled back if it failed
+  console.log('\n==> Checking for failed migrations...');
+  try {
+    execSync('npx prisma migrate resolve --rolled-back 20240530213853_create_session_table', { 
+      stdio: 'inherit' 
+    });
+    console.log('✓ Failed migration marked as rolled back');
+  } catch (error) {
+    console.log('No failed migrations to resolve (this is normal on first deploy)');
+  }
+
+  // Step 3: Deploy all migrations
   console.log('\n==> Deploying migrations...');
   try {
     execSync('npx prisma migrate deploy', { stdio: 'inherit' });
@@ -58,4 +69,3 @@ main().catch((error) => {
   console.error('Setup failed:', error);
   process.exit(1);
 });
-
