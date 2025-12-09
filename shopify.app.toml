@@ -2,7 +2,7 @@
 
 client_id = "e3388306344441ee0c4f096838bfcad3"
 name = "wdm-delivery-map-app"
-application_url = "https://example.com"
+application_url = "https://wdm-delivery-map-app.onrender.com"
 embedded = true
 
 [build]
@@ -25,11 +25,11 @@ api_version = "2026-01"
 scopes = "write_products,write_files"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ "https://wdm-delivery-map-app.onrender.com/api/auth" ]
 
 # App Proxy - allows storefront to access app API endpoints
 # Requests to /apps/delivery-map/* will be proxied to your app
 [app_proxy]
-url = "https://example.com"
+url = "https://wdm-delivery-map-app.onrender.com"
 subpath = "delivery-map"
 prefix = "apps"
