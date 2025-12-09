@@ -71,7 +71,13 @@ https://[your-store].myshopify.com/admin/apps/delivery-locations-map
 
 ### Method 4: Install via OAuth URL
 
-**If the app is not installed yet, use this direct installation URL:**
+**⚠️ WARNING: This method requires Partners Dashboard access!**
+
+**If you see "redirect_uri is not whitelisted" error:**
+- ❌ This method won't work without Partners Dashboard access
+- ✅ **Use Shopify CLI instead** (see full guide: `CONFIGURE-WITHOUT-PARTNERS-DASHBOARD.md`)
+
+**If you have Partners Dashboard access:**
 
 Replace `[your-store]` with your actual store domain:
 
@@ -83,12 +89,16 @@ https://[your-store].myshopify.com/admin/oauth/authorize?
 ```
 
 **Steps:**
-1. Copy the URL above
-2. Replace `[your-store]` with your store (e.g., `mystore`)
-3. Open in browser
-4. Log in to your store
-5. Approve app installation
-6. You'll be redirected to the app admin
+1. **First:** Whitelist redirect URI in Partners Dashboard:
+   - Partners Dashboard → Your App → App setup
+   - Add `https://wdm-delivery-map-app.onrender.com/api/auth/callback` to "Allowed redirection URL(s)"
+   - Save changes
+2. Copy the URL above
+3. Replace `[your-store]` with your store (e.g., `mystore`)
+4. Open in browser
+5. Log in to your store
+6. Approve app installation
+7. You'll be redirected to the app admin
 
 ---
 

@@ -4,6 +4,21 @@ If you're having issues accessing the Shopify Partners Dashboard, here are alter
 
 ---
 
+## ⚠️ IMPORTANT: OAuth Redirect URI Error
+
+**If you see this error:**
+```
+Oauth error invalid_request: The redirect_uri is not whitelisted
+```
+
+**This means:** Direct OAuth installation requires Partners Dashboard access to whitelist the redirect URI.
+
+**✅ SOLUTION:** Use **Method 1 (Shopify CLI)** instead - it handles OAuth automatically and doesn't require redirect URI whitelisting!
+
+**Skip to:** [Method 1: Using Shopify CLI](#method-1-using-shopify-cli-recommended)
+
+---
+
 ## 📋 Table of Contents
 
 1. [Quick Assessment](#quick-assessment)
@@ -168,11 +183,13 @@ To add delivery pins and configure the map:
 
 ## Method 3: Manual App Installation via URL
 
-**If you have the app's installation URL or OAuth URL, you can install it manually.**
+**⚠️ IMPORTANT:** Direct OAuth installation requires the redirect URI to be whitelisted in Partners Dashboard. If you can't access Partners Dashboard, **this method won't work**. Use [Method 1 (Shopify CLI)](#method-1-using-shopify-cli-recommended) instead, which handles OAuth automatically.
 
-### Option A: Using OAuth Installation URL
+### Option A: Using OAuth Installation URL (Requires Partners Dashboard Access)
 
-If you know your app's Client ID, you can construct the installation URL:
+**⚠️ This will fail with "redirect_uri is not whitelisted" error if Partners Dashboard is not accessible.**
+
+If you have Partners Dashboard access and the redirect URI is whitelisted, you can construct the installation URL:
 
 ```
 https://[your-store].myshopify.com/admin/oauth/authorize?
@@ -183,10 +200,18 @@ https://[your-store].myshopify.com/admin/oauth/authorize?
 
 **Steps:**
 1. Replace `[your-store]` with your actual store domain
-2. Open the URL in your browser
-3. Log in to your store
-4. Approve the app installation
-5. You'll be redirected back to the app
+2. **First, ensure redirect URI is whitelisted in Partners Dashboard:**
+   - Go to Partners Dashboard → Your App → App setup
+   - Add `https://wdm-delivery-map-app.onrender.com/api/auth/callback` to "Allowed redirection URL(s)"
+   - Save changes
+3. Open the URL in your browser
+4. Log in to your store
+5. Approve the app installation
+6. You'll be redirected back to the app
+
+**If you get "redirect_uri is not whitelisted" error:**
+- ❌ You need Partners Dashboard access to whitelist the redirect URI
+- ✅ **Use Method 1 (Shopify CLI) instead** - it handles this automatically
 
 ### Option B: Direct Admin Access
 
@@ -257,6 +282,45 @@ If App Proxy is working, you can add this to your theme directly:
 
 ## Troubleshooting
 
+### Issue: "Oauth error invalid_request: The redirect_uri is not whitelisted"
+
+**This is the most common error when trying to install without Partners Dashboard access.**
+
+**Error Message:**
+```
+Oauth error invalid_request: The redirect_uri is not whitelisted
+```
+
+**Why it happens:**
+- Direct OAuth requires the redirect URI to be whitelisted in Partners Dashboard
+- Without Partners Dashboard access, you can't whitelist the redirect URI
+- This method simply won't work without Partners Dashboard
+
+**✅ SOLUTION: Use Shopify CLI Instead**
+
+The Shopify CLI handles OAuth automatically and doesn't require redirect URI whitelisting:
+
+```bash
+# Install CLI
+npm install -g @shopify/cli
+
+# Navigate to your app directory
+cd wdm-delivery-map-app
+
+# Start dev server (handles OAuth automatically)
+shopify app dev
+```
+
+The CLI will:
+- ✅ Create a tunnel URL automatically
+- ✅ Handle OAuth flow without redirect URI whitelisting
+- ✅ Provide an installation link
+- ✅ Work without Partners Dashboard access
+
+**See:** [Method 1: Using Shopify CLI](#method-1-using-shopify-cli-recommended) for detailed steps.
+
+---
+
 ### Issue: "App not found" in theme customizer
 
 **Solution:**
@@ -311,21 +375,27 @@ If App Proxy is working, you can add this to your theme directly:
 
 **If you can't access Partners Dashboard, follow this order:**
 
-1. **First:** Try [Method 1 (Shopify CLI)](#method-1-using-shopify-cli-recommended)
-   - Most reliable way to install without Partners Dashboard
-   - Gives you full control
+1. **⭐ BEST OPTION:** Use [Method 1 (Shopify CLI)](#method-1-using-shopify-cli-recommended)
+   - ✅ **ONLY reliable way** to install without Partners Dashboard access
+   - ✅ Handles OAuth automatically (no redirect URI whitelisting needed)
+   - ✅ Creates tunnel URL automatically
+   - ✅ Gives you full control
+   - ⚠️ Requires Node.js and CLI installation
 
-2. **If CLI doesn't work:** Try [Method 3 (Manual Installation)](#method-3-manual-app-installation-via-url)
-   - Direct OAuth URL
-   - Bypasses Partners Dashboard
+2. **If app is already installed:** Use [Method 2 (Theme Customizer)](#method-2-direct-theme-block-addition)
+   - ✅ Quickest way to add the map
+   - ✅ No technical setup needed
+   - ✅ Works immediately if app is installed
 
-3. **If app is already installed:** Use [Method 2 (Theme Customizer)](#method-2-direct-theme-block-addition)
-   - Quickest way to add the map
-   - No technical setup needed
+3. **❌ AVOID Method 3 (Direct OAuth):** 
+   - ❌ **Won't work** without Partners Dashboard access
+   - ❌ Requires redirect URI whitelisting
+   - ❌ Will show "redirect_uri is not whitelisted" error
 
 4. **For advanced use:** Try [Method 4 (App Proxy)](#method-4-using-app-proxy-directly)
    - Direct API access
    - Custom implementation
+   - Requires app to be installed first
 
 ---
 
