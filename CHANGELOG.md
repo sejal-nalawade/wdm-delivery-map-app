@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `.github/workflows/keep-alive.yml` to prevent app sleeping
   - Created `README-DEPLOYMENT.md` with quick deployment instructions
 - **App Proxy Configuration** - Added app proxy settings to `shopify.app.toml` for storefront API access
+
+### Changed
+- **Production Database Setup** - Modified `docker-start` script to force `prisma db push` before migrations to ensure tables are created
+- **Shopify App Configuration** - Updated `shopify.app.toml` with production Render URL (https://wdm-delivery-map-app.onrender.com)
+- **Access Scopes** - Added `write_files` scope back to `shopify.app.toml`
 - **App Proxy Routes** - Created dedicated routes for App Proxy requests:
   - `settings.$shop.jsx` - Settings endpoint for storefront (App Proxy strips prefix)
   - `pins.$shop.jsx` - Pins endpoint for storefront (App Proxy strips prefix)
